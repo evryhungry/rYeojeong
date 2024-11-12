@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "809778544350",
+    "project_id": "ryeojeong-5a430",
+    "storage_bucket": "ryeojeong-5a430.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:809778544350:android:3ee2ee515585e6df5e0c4f",
+        "android_client_info": {
+          "package_name": "com.example.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAcDeJQnzaV_oJBss9BtJjnc4WeKtcS_B4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
