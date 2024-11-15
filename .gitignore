@@ -25,3 +25,8 @@ doc/api/
 
 .flutter-plugins
 .flutter-plugins-dependencies
+
+windows/flutter/ephemeral/.plugin_symlinks/firebase_core
+windows/flutter/ephemeral/.plugin_symlinks/firebase_auth
+windows/flutter/ephemeral/.plugin_symlinks/desktop_webview_auth
+windows/flutter/ephemeral/.plugin_symlinks/cloud_firestore
