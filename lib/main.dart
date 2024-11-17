@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
 
+import 'pages/addCommunity.dart';
+import 'pages/community.dart';
+import 'pages/detailCommunity.dart';
+import 'pages/exercise.dart';
+import 'pages/home.dart';
+import 'pages/login.dart';
+import 'pages/signup.dart';
+
+
 void main() {
   runApp(const MyApp());
 }
