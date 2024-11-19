@@ -3,15 +3,31 @@ import 'package:table_calendar/table_calendar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-  
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-   // 현재 선택된 날짜 및 포커스 날짜
+  // 현재 선택된 날짜 및 포커스 날짜
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  int _selectedIndex = 0;
+
+  final List<String> _routes = [
+    '/',
+    '/community',
+    '/exercise',
+    '/shop',
+    '/profile',
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index; // 선택된 탭의 인덱스 업데이트
+    });
+    Navigator.pushNamed(context, _routes[index]); // 해당 경로로 이동
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +68,8 @@ class _HomePageState extends State<HomePage> {
                 headerStyle: HeaderStyle(
                   formatButtonVisible: false,
                   titleCentered: true,
-                  titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  titleTextStyle:
+                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 calendarStyle: CalendarStyle(
                   todayDecoration: BoxDecoration(
@@ -65,14 +82,14 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-        
+
               SizedBox(height: 20),
-        
+
               // 2. 진행 바 (운동 진행률)
               ProgressIndicatorWidget(),
-        
+
               SizedBox(height: 20),
-        
+
               // 3. 통계 위젯 (걸음수, 운동 시간)
               StatisticsWidget(),
             ],
@@ -86,12 +103,12 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.chat), label: "Chat"),
           BottomNavigationBarItem(icon: Icon(Icons.pets), label: "Exercise"),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: "Shop"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart), label: "Shop"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
-        onTap: (index) {
-          // 네비게이션 탭 이벤트
-        },
+        currentIndex: _selectedIndex, // 현재 선택된 인덱스
+        onTap: _onItemTapped,
       ),
     );
   }
@@ -134,7 +151,6 @@ class ProgressIndicatorWidget extends StatelessWidget {
     );
   }
 }
-
 
 class StatisticsWidget extends StatelessWidget {
   @override

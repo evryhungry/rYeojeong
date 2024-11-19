@@ -1,18 +1,95 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'home.dart';
+import 'signup.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
-  
+  const LoginPage({Key? key}) : super(key: key);
+
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  
-  @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  Future<void> _login() async {
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _usernameController.text,
+        password: _passwordController.text,
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to login: $e')),
+      );
+    }
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          children: <Widget>[
+            const SizedBox(height: 80.0),
+            Column(
+              children: <Widget>[
+                Image.asset('assets/logo.png'),
+              ],
+            ),
+            TextField(
+              controller: _usernameController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+              ),
+            ),
+            const SizedBox(height: 12.0),
+            TextField(
+              controller: _passwordController,
+              decoration: const InputDecoration(
+                labelText: 'Password',
+              ),
+              obscureText: true,
+            ),
+            const SizedBox(height: 12.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                TextButton(
+                  child: const Text('CANCEL'),
+                  onPressed: () {
+                    _usernameController.clear();
+                    _passwordController.clear();
+                  },
+                ),
+                TextButton(
+                  child: const Text('Sign Up'),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SignupPage(),
+                      ),
+                    );
+                  },
+                ),
+                ElevatedButton(
+                  child: const Text('NEXT'),
+                  onPressed: _login,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' ;
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter/material.dart';
 import '../model/communities.dart';
@@ -13,7 +13,7 @@ class ApplicationState extends ChangeNotifier {
   ApplicationState() {
     init();
   }
-  
+
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
 
@@ -23,7 +23,7 @@ class ApplicationState extends ChangeNotifier {
   bool _loggedIn = false;
   bool get loggedIn => _loggedIn;
 
-    // 초기화 메서드
+  // 초기화 메서드
   Future<void> init() async {
     await _auth.signOut();
     _auth.authStateChanges().listen((user) {
