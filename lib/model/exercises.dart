@@ -1,11 +1,9 @@
 class Exercises {
-  final String? id;
-  final String? userId;
-  final int? distance;
-  final int? stopWatch;
-  final DateTime? created_at;
-
-  
+  final String id;
+  final String userId;
+  final int distance;
+  final int stopWatch;
+  final DateTime created_at;
 
   const Exercises({
     required this.id,

@@ -42,6 +42,9 @@ dependencies:
   firebase_ui_auth: ^1.16.0
   google_sign_in: ^6.2.2
   firebase_storage: ^12.3.6
+  google_fonts: ^6.2.1
+  smooth_page_indicator: ^1.2.0+3
+  table_calendar: ^3.1.2
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +64,9 @@ dev_dependencies:
 flutter:
   assets:
     - assets/logo.png
+    - assets/first.png
+    - assets/second.png
+    - assets/third.png
     
   
 

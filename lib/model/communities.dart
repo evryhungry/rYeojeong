@@ -1,14 +1,4 @@
 class Communities {
-  final String? id;
-  final String? name;
-  final String? photo;
-  final String? description;
-  final int? likes;
-  final DateTime created_at;
-  final String userId;
-
-  
-
   const Communities({
     required this.id,
     required this.name,
@@ -18,4 +8,12 @@ class Communities {
     required this.created_at,
     required this.userId,
   });
+
+  final int id;
+  final String name;
+  final String photo;
+  final String description;
+  final int likes;
+  final DateTime created_at;
+  final String userId;
 }

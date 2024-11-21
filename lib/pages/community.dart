@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:re/pages/addCommunity.dart';
-import 'package:re/pages/detailCommunity.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import '../model/Communities.dart';
+import 'cardview.dart';
 
 class CommunityPage extends StatefulWidget {
   const CommunityPage({super.key});
@@ -10,70 +12,62 @@ class CommunityPage extends StatefulWidget {
 }
 
 class _CommunityPageState extends State<CommunityPage> {
-  // 게시글 목록 데이터
-  List<Post> posts = [
-    // 예시 데이터
-    Post(author: '사용자1', content: '첫 번째 게시글 내용', timestamp: DateTime.now()),
-    Post(
-        author: '사용자2',
-        content: '두 번째 게시글 내용',
-        timestamp: DateTime.now().subtract(Duration(hours: 1))),
-  ];
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+
+  // Firestore에서 커뮤니티 데이터 가져오기
+  Future<List<Communities>> _fetchCommunities() async {
+    QuerySnapshot snapshot = await _firestore.collection('communities').get();
+
+    List<Communities> communities = [];
+
+    for (var doc in snapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      print('Document ID: ${doc.id}');
+      print('Data: $data');
+      print('id: ${data['id']}, likes: ${data['likes']}');
+
+      // Firebase Storage에서 URL 가져오기
+      String photoUrl = await _storage
+          .ref(data['photo']) // 예: 'pet1.png'
+          .getDownloadURL();
+
+      communities.add(Communities(
+        id: data['id'],
+        name: data['name'],
+        photo: photoUrl, // URL 가져오기 완료
+        description: data['description'],
+        likes: data['likes'],
+        created_at: (data['created_at'] as Timestamp).toDate(),
+        userId: data['userId'],
+      ));
+    }
+
+    return communities;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('커뮤니티'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () {
-              // 새 게시글 작성 페이지로 이동
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        AddcommunityPage(onPostAdded: (newPost) {
-                          setState(() {
-                            posts.insert(0, newPost);
-                          });
-                        })),
-              );
-            },
-          ),
-        ],
+        title: const Text('Community'),
       ),
-      body: ListView.builder(
-        itemCount: posts.length,
-        itemBuilder: (context, index) {
-          final post = posts[index];
-          return ListTile(
-            title: Text(post.author),
-            subtitle: Text(post.content),
-            trailing: Text(
-              '${post.timestamp.hour}:${post.timestamp.minute}',
-              style: TextStyle(fontSize: 12),
-            ),
-            onTap: () {
-              // 게시글 상세 페이지로 이동
-              //   Navigator.push(
-              //     context,
-              //   //   MaterialPageRoute(
-              //   //       // builder: (context) => DetailcommunityPage(post: post)),
-              //   // );
-            },
-          );
+      body: FutureBuilder<List<Communities>>(
+        future: _fetchCommunities(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            print('Error: ${snapshot.error}');
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            print('No data found');
+            return const Center(child: Text('No communities found'));
+          }
+          print('Data loaded: ${snapshot.data}');
+          return CardView(communityList: snapshot.data!);
         },
       ),
     );
   }
-}
-
-class Post {
-  final String author;
-  final String content;
-  final DateTime timestamp;
-
-  Post({required this.author, required this.content, required this.timestamp});
 }

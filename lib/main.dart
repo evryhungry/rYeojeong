@@ -8,6 +8,7 @@ import 'package:re/pages/home.dart';
 import 'package:re/pages/login.dart';
 import 'package:re/pages/signup.dart';
 import 'pages/loading.dart'; // LoginPage가 정의된 파일을 import
+import 'controller/app_state.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => HomePage(),
         '/community': (context) => CommunityPage(),
         '/exercise': (context) => ExercisePage(),
-        // '/shop': (context) => DetailcommunityPage(),
+        '/shop': (context) => DetailcommunityPage(),
         '/profile': (context) => AddcommunityPage(
               onPostAdded: (newPost) {},
             ),

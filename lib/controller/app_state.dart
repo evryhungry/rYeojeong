@@ -22,6 +22,8 @@ class ApplicationState extends ChangeNotifier {
 
   bool _loggedIn = false;
   bool get loggedIn => _loggedIn;
+  List<Communities> allCommunities = [];
+  List<Communities> get allTheCommunities => allCommunities;
 
   // 초기화 메서드
   Future<void> init() async {

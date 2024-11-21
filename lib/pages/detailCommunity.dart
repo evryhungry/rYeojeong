@@ -10,7 +10,7 @@ class Post {
 }
 
 class DetailcommunityPage extends StatefulWidget {
-  const DetailcommunityPage({super.key, required Post post});
+  const DetailcommunityPage({super.key});
 
   @override
   State<DetailcommunityPage> createState() => _DetailcommunityPageState();
