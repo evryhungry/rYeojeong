@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../model/Communities.dart';
+import 'detailCommunity.dart';
 
 class CardView extends StatelessWidget {
   const CardView({super.key, required this.communityList});
@@ -38,17 +39,27 @@ class CardView extends StatelessWidget {
                   ],
                 ),
               ),
-              // 메인 이미지
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Image.network(
-                  community.photo, // Storage에서 가져온 메인 이미지
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.image_not_supported);
-                  },
+              // 메인 이미지 (탭 이벤트 추가)
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/community/detail',
+                    arguments: community, // `Communities` 객체 전달
+                  );
+                },
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Image.network(
+                    community.photo,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(Icons.image_not_supported);
+                    },
+                  ),
                 ),
               ),
+
               // 하단 아이콘 및 동작
               Padding(
                 padding: const EdgeInsets.all(12.0),
@@ -79,14 +90,6 @@ class CardView extends StatelessWidget {
                         ),
                       ],
                     ),
-                    // 슬라이드 인디케이터
-                    Row(
-                      children: [
-                        _buildDot(active: true),
-                        _buildDot(active: false),
-                        _buildDot(active: false),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -94,21 +97,6 @@ class CardView extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-
-  // 슬라이드 인디케이터 점
-  Widget _buildDot({required bool active}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2.0),
-      child: Container(
-        width: 8.0,
-        height: 8.0,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: active ? Colors.black : Colors.grey,
-        ),
-      ),
     );
   }
 }

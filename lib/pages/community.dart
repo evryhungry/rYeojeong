@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../model/Communities.dart';
 import 'cardview.dart';
+import 'addCommunity.dart';
 
 class CommunityPage extends StatefulWidget {
   const CommunityPage({super.key});
@@ -50,7 +51,27 @@ class _CommunityPageState extends State<CommunityPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Community'),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            semanticLabel: 'back',
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text('커뮤니티'),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(
+              Icons.add,
+              semanticLabel: 'add',
+            ),
+            onPressed: () {
+              Navigator.pushNamed(context, '/community/add');
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<Communities>>(
         future: _fetchCommunities(),
