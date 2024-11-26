@@ -18,6 +18,8 @@ class _ImageSliderState extends State<ImageSlider> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Scaffold(
       backgroundColor: Colors.white, // 배경색 설정
       body: Stack(
@@ -53,7 +55,7 @@ class _ImageSliderState extends State<ImageSlider> {
           ),
           // SmoothPageIndicator
           Positioned(
-            bottom: 300, // 화면 아래로부터 100px 위
+            bottom: 250, // 화면 아래로부터 100px 위
             left: 0,
             right: 0,
             child: Center(
@@ -63,7 +65,7 @@ class _ImageSliderState extends State<ImageSlider> {
                 effect: ExpandingDotsEffect(
                   dotWidth: 8.0,
                   dotHeight: 8.0,
-                  activeDotColor: Colors.orange,
+                  activeDotColor: theme.primaryColorLight,
                   dotColor: Colors.grey.shade300,
                 ), // 애니메이션 효과 설정
               ),
@@ -79,7 +81,7 @@ class _ImageSliderState extends State<ImageSlider> {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
+                backgroundColor: theme.primaryColorLight,
                 minimumSize: Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),

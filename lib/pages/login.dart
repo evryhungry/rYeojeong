@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import '../controller/app_state.dart';
 import 'home.dart';
 import 'signup.dart';
 
@@ -16,10 +18,11 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _login() async {
     try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _usernameController.text,
-        password: _passwordController.text,
+      // ApplicationState에서 로그인 처리
+      final appState = Provider.of<ApplicationState>(context, listen: false);
+      await appState.login(
+        _usernameController.text,
+        _passwordController.text,
       );
       Navigator.pushReplacement(
         context,
