@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:provider/provider.dart';
+import '../controller/app_state.dart';
+import '../model/exercises.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -9,7 +12,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // 현재 선택된 날짜 및 포커스 날짜
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   int _selectedIndex = 0;
@@ -24,37 +26,94 @@ class _HomePageState extends State<HomePage> {
 
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index; // 선택된 탭의 인덱스 업데이트
+      _selectedIndex = index;
     });
-    Navigator.pushNamed(context, _routes[index]); // 해당 경로로 이동
+    Navigator.pushNamed(context, _routes[index]);
   }
 
   @override
+  void initState() {
+    super.initState();
+    final appState = Provider.of<ApplicationState>(context, listen: false);
+    appState.fetchExerciseData();
+  }
+  
+  List<Exercises> _getEventsForDay(DateTime day) {
+    final appState = Provider.of<ApplicationState>(context, listen: false);
+    final normalizedDay = DateTime(day.year, day.month, day.day);
+    return appState.events[normalizedDay] ?? [];
+  }
+
+  String formatStopWatch(int totalSeconds) {
+    int hours = totalSeconds ~/ 3600; // 시간 계산
+    int minutes = (totalSeconds % 3600) ~/ 60; // 분 계산
+    int seconds = totalSeconds % 60; // 초 계산
+
+    // HH:mm:ss 형식으로 반환
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+  
+  void _showExerciseDetails(BuildContext context, DateTime selectedDay) {
+    final exercises = _getEventsForDay(selectedDay);
+
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "${selectedDay.month}월 ${selectedDay.day}일 산책",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              if (exercises.isEmpty)
+                Center(child: Text("운동 기록이 없습니다."))
+              else
+                ...exercises.map((exercise) => ListTile(
+                      title: Text(
+                        "거리: ${exercise.distance.toStringAsFixed(1)}km",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      subtitle: Text(
+                          "시간: ${formatStopWatch(exercise.stopWatch)}",
+                      ),
+                      
+                      leading: Icon(Icons.directions_walk),
+                    )),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appState = Provider.of<ApplicationState>(context);
+
     return Scaffold(
       appBar: AppBar(
-        leading: Icon(Icons.menu), // 햄버거 메뉴
-        actions: const [
-          // Image(
-          //   // icon: Icon(Icons.emoji_events), // 메달 아이콘
-          //   // onPressed: () {
-          //   //   // 메달 클릭 이벤트
-          //   , image: null,
-          // )
-        ],
+        leading: Icon(Icons.menu),
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // 1. TableCalendar 위젯
+              // 1. TableCalendar
               TableCalendar(
                 firstDay: DateTime.utc(2020, 1, 1),
                 lastDay: DateTime.utc(2030, 12, 31),
                 focusedDay: _focusedDay,
                 selectedDayPredicate: (day) {
-                  // 선택된 날짜인지 확인
                   return isSameDay(_selectedDay, day);
                 },
                 onDaySelected: (selectedDay, focusedDay) {
@@ -62,41 +121,53 @@ class _HomePageState extends State<HomePage> {
                     _selectedDay = selectedDay;
                     _focusedDay = focusedDay;
                   });
+                  // 운동 기록 상세 창 표시
+                  _showExerciseDetails(context, selectedDay);
                 },
                 calendarFormat: CalendarFormat.month,
                 startingDayOfWeek: StartingDayOfWeek.monday,
                 headerStyle: HeaderStyle(
                   formatButtonVisible: false,
                   titleCentered: true,
-                  titleTextStyle:
-                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  titleTextStyle: TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 calendarStyle: CalendarStyle(
                   todayDecoration: BoxDecoration(
-                    color: Colors.blueAccent,
+                    color: theme.primaryColor,
                     shape: BoxShape.circle,
                   ),
                   selectedDecoration: BoxDecoration(
-                    color: Colors.green,
+                    color: theme.primaryColorLight,
                     shape: BoxShape.circle,
                   ),
+                  markerDecoration: BoxDecoration(
+                    color: theme.primaryColorDark,
+                    shape: BoxShape.circle,
+                  ),
+                  markersAutoAligned: true,
+                  markerSizeScale: 0.2,
                 ),
+                eventLoader: _getEventsForDay,
               ),
 
               SizedBox(height: 20),
 
-              // 2. 진행 바 (운동 진행률)
-              ProgressIndicatorWidget(),
+              // 2. Progress Indicator (운동 진행률)
+              ProgressIndicatorWidget(progress: appState.progress),
 
               SizedBox(height: 20),
 
               // 3. 통계 위젯 (걸음수, 운동 시간)
-              StatisticsWidget(),
+              StatisticsWidget(
+                streakDays: appState.streakDays,
+                totalExerciseCount: appState.totalExerciseCount,
+                thisMonthExerciseCount: appState.thisMonthExerciseCount,
+              ),
             ],
           ),
         ),
       ),
-      // 하단 네비게이션 바
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         items: const [
@@ -107,14 +178,17 @@ class _HomePageState extends State<HomePage> {
               icon: Icon(Icons.shopping_cart), label: "Shop"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
-        currentIndex: _selectedIndex, // 현재 선택된 인덱스
+        currentIndex: _selectedIndex,
         onTap: _onItemTapped,
       ),
     );
   }
 }
-
 class ProgressIndicatorWidget extends StatelessWidget {
+  final double progress;
+
+  const ProgressIndicatorWidget({required this.progress});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -142,7 +216,7 @@ class ProgressIndicatorWidget extends StatelessWidget {
           SizedBox(height: 10),
           LinearProgressIndicator(
             minHeight: 10.0,
-            value: 0.6, // 진행률 60%
+            value: progress, // 진행률
             backgroundColor: Colors.grey[500],
             color: Colors.yellow,
           ),
@@ -153,6 +227,16 @@ class ProgressIndicatorWidget extends StatelessWidget {
 }
 
 class StatisticsWidget extends StatelessWidget {
+  final int streakDays;
+  final int totalExerciseCount;
+  final int thisMonthExerciseCount;
+
+  const StatisticsWidget({
+    required this.streakDays,
+    required this.totalExerciseCount,
+    required this.thisMonthExerciseCount,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -173,9 +257,9 @@ class StatisticsWidget extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          StatisticColumn(label: "연속 출석일", value: "5일"),
-          StatisticColumn(label: "총 운동 횟수", value: "15회"),
-          StatisticColumn(label: "이번 달 운동", value: "10회"),
+          StatisticColumn(label: "연속 출석일", value: "$streakDays 일"),
+          StatisticColumn(label: "총 운동 횟수", value: "$totalExerciseCount 회"),
+          StatisticColumn(label: "이번 달 운동", value: "$thisMonthExerciseCount 회"),
         ],
       ),
     );
@@ -186,7 +270,7 @@ class StatisticColumn extends StatelessWidget {
   final String label;
   final String value;
 
-  StatisticColumn({required this.label, required this.value});
+  const StatisticColumn({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {

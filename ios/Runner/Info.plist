@@ -51,5 +51,14 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+  <key>GMSApiKey</key>
+	<string>AIzaSyDAmHg1iNRm6fW7WGqrGap12-iNvowSa74</string>
+  <key>io.flutter.embedded_views_preview</key>
+  <true/>
+  <key>NSAppTransportSecurity</key>
+  <dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <true/>
+  </dict>
 </dict>
 </plist>

@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:provider/provider.dart';
+import '../controller/app_state.dart';
 
 class ExercisePage extends StatefulWidget {
   const ExercisePage({super.key});
@@ -26,32 +28,47 @@ class _ExercisePageState extends State<ExercisePage> {
   // ㅊ초기상태
   void initState() {
     super.initState();
-    _initializeLocation();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeLocation();
+    });
   }
 
   //초기 로컬 우치정보 허가 미허가., 초기 위치 본인 위치 설정
   Future<void> _initializeLocation() async {
-    bool serviceEnabled = await location.serviceEnabled();
-    if (!serviceEnabled) {
-      serviceEnabled = await location.requestService();
-      if (!serviceEnabled) return;
-    }
-    PermissionStatus permissionGranted = await location.hasPermission();
-    if (permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await location.requestPermission();
-      if (permissionGranted != PermissionStatus.granted) return;
-    }
+    try {
+      bool serviceEnabled = await location.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await location.requestService();
+        if (!serviceEnabled) {
+          print("User denied enabling location services.");
+          return;
+        }
+      }
 
-    LocationData currentLocation = await location.getLocation();
-    location.onLocationChanged.listen(_updateDistance);
+      PermissionStatus permissionGranted = await location.hasPermission();
+      if (permissionGranted == PermissionStatus.denied) {
+        permissionGranted = await location.requestPermission();
+        if (permissionGranted != PermissionStatus.granted) {
+          print("User denied location permission.");
+          return;
+        }
+      }
+            
 
-    setState(() {
-      _initialCameraPosition = CameraPosition(
-        target: LatLng(currentLocation.latitude!, currentLocation.longitude!),
-        zoom: 16,
-      );
-    });
+      LocationData currentLocation = await location.getLocation();
+      print("Current Location: ${currentLocation.latitude}, ${currentLocation.longitude}");
+      setState(() {
+        _initialCameraPosition = CameraPosition(
+          target: LatLng(currentLocation.latitude!, currentLocation.longitude!),
+          zoom: 16,
+        );
+      });
+      
+    } catch (e) {
+      print('Failed to get location: $e');
+    }
   }
+
 
   // 거리 정보 설정
   void _updateDistance(LocationData newLocation) {
@@ -106,7 +123,13 @@ class _ExercisePageState extends State<ExercisePage> {
   }
 
   //정지 버튼 누릉시 리셋 데이타
-  void _resetData() {
+  Future<void> _resetData() async {
+    final appState = Provider.of<ApplicationState>(context, listen: false);
+    await appState.saveExerciseData(
+      totalDistance,
+      elapsedSeconds,
+    );
+
     _timer?.cancel();
     setState(() {
       isRunning = false;
@@ -114,6 +137,7 @@ class _ExercisePageState extends State<ExercisePage> {
       totalDistance = 0.0;
       previousPosition = null;
     });
+
     Navigator.pop(context);
   }
 
@@ -133,7 +157,7 @@ class _ExercisePageState extends State<ExercisePage> {
                   mapType: MapType.normal,
                   initialCameraPosition: _initialCameraPosition ??
                       CameraPosition(
-                        target: LatLng(0, 0), // 기본값
+                        target: LatLng(36.103839, 129.388732), // 기본값
                         zoom: 16.0,
                       ),
                   onMapCreated: (GoogleMapController controller) {
@@ -151,7 +175,7 @@ class _ExercisePageState extends State<ExercisePage> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       boxShadow: [
-                        BoxShadow(color: Colors.black26, blurRadius: 10),
+                        BoxShadow(color: theme.dividerColor , blurRadius: 10),
                       ],
                     ),
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -193,7 +217,7 @@ class _ExercisePageState extends State<ExercisePage> {
                       ),
                       Text(
                         '거리(km)',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                        style: TextStyle(fontSize: 14, color: theme.dividerColor),
                       ),
                     ],
                   ),
@@ -201,7 +225,7 @@ class _ExercisePageState extends State<ExercisePage> {
                   Container(
                     height: 40,
                     width: 1,
-                    color: Colors.grey,
+                    color: theme.dividerColor,
                   ),
                   // 버튼
                   Row(
@@ -228,7 +252,7 @@ class _ExercisePageState extends State<ExercisePage> {
                   Container(
                     height: 40,
                     width: 1,
-                    color: Colors.grey,
+                    color: theme.dividerColor,
                   ),
                   // 시간 정보
                   Column(
@@ -240,7 +264,7 @@ class _ExercisePageState extends State<ExercisePage> {
                       ),
                       Text(
                         '시간:분(h:m)',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                        style: TextStyle(fontSize: 14, color: theme.dividerColor),
                       ),
                     ],
                   ),
