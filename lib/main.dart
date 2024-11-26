@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
         '/community': (context) => CommunityPage(),
         '/exercise': (context) => ExercisePage(),
         '/shop': (context) => DetailcommunityPage(),
-        '/profile': (context) => AddcommunityPage(
+        '/profile': (context) => AddCommunityPage(
               onPostAdded: (newPost) {},
             ),
       },
