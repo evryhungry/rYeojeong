@@ -44,7 +44,57 @@ class _HomePageState extends State<HomePage> {
     return appState.events[normalizedDay] ?? [];
   }
 
-  @override
+  String formatStopWatch(int totalSeconds) {
+    int hours = totalSeconds ~/ 3600; // 시간 계산
+    int minutes = (totalSeconds % 3600) ~/ 60; // 분 계산
+    int seconds = totalSeconds % 60; // 초 계산
+
+    // HH:mm:ss 형식으로 반환
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+  
+  void _showExerciseDetails(BuildContext context, DateTime selectedDay) {
+    final exercises = _getEventsForDay(selectedDay);
+
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "${selectedDay.month}월 ${selectedDay.day}일 산책",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              if (exercises.isEmpty)
+                Center(child: Text("운동 기록이 없습니다."))
+              else
+                ...exercises.map((exercise) => ListTile(
+                      title: Text(
+                        "거리: ${exercise.distance.toStringAsFixed(1)}km",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      subtitle: Text(
+                          "시간: ${formatStopWatch(exercise.stopWatch)}",
+                      ),
+                      
+                      leading: Icon(Icons.directions_walk),
+                    )),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final appState = Provider.of<ApplicationState>(context);
@@ -71,13 +121,16 @@ class _HomePageState extends State<HomePage> {
                     _selectedDay = selectedDay;
                     _focusedDay = focusedDay;
                   });
+                  // 운동 기록 상세 창 표시
+                  _showExerciseDetails(context, selectedDay);
                 },
                 calendarFormat: CalendarFormat.month,
                 startingDayOfWeek: StartingDayOfWeek.monday,
                 headerStyle: HeaderStyle(
                   formatButtonVisible: false,
                   titleCentered: true,
-                  titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  titleTextStyle: TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 calendarStyle: CalendarStyle(
                   todayDecoration: BoxDecoration(
@@ -85,11 +138,11 @@ class _HomePageState extends State<HomePage> {
                     shape: BoxShape.circle,
                   ),
                   selectedDecoration: BoxDecoration(
-                    color: theme.canvasColor,
+                    color: theme.primaryColorLight,
                     shape: BoxShape.circle,
                   ),
                   markerDecoration: BoxDecoration(
-                    color: theme.primaryColorLight,
+                    color: theme.primaryColorDark,
                     shape: BoxShape.circle,
                   ),
                   markersAutoAligned: true,
@@ -131,7 +184,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
 class ProgressIndicatorWidget extends StatelessWidget {
   final double progress;
 
