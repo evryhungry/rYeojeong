@@ -1,7 +1,7 @@
 class Exercises {
   final String id;
   final String userId;
-  final int distance;
+  final double distance;
   final int stopWatch;
   final DateTime created_at;
 
