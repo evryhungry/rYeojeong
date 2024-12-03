@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
     '/',
     '/community',
     '/exercise',
-    '/shop',
+    '/animal',
     '/profile',
   ];
 
@@ -37,7 +37,7 @@ class _HomePageState extends State<HomePage> {
     final appState = Provider.of<ApplicationState>(context, listen: false);
     appState.fetchExerciseData();
   }
-  
+
   List<Exercises> _getEventsForDay(DateTime day) {
     final appState = Provider.of<ApplicationState>(context, listen: false);
     final normalizedDay = DateTime(day.year, day.month, day.day);
@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
     // HH:mm:ss 형식으로 반환
     return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
-  
+
   void _showExerciseDetails(BuildContext context, DateTime selectedDay) {
     final exercises = _getEventsForDay(selectedDay);
 
@@ -82,9 +82,8 @@ class _HomePageState extends State<HomePage> {
                         style: TextStyle(fontSize: 16),
                       ),
                       subtitle: Text(
-                          "시간: ${formatStopWatch(exercise.stopWatch)}",
+                        "시간: ${formatStopWatch(exercise.stopWatch)}",
                       ),
-                      
                       leading: Icon(Icons.directions_walk),
                     )),
             ],
@@ -94,7 +93,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-   @override
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final appState = Provider.of<ApplicationState>(context);
@@ -129,8 +128,8 @@ class _HomePageState extends State<HomePage> {
                 headerStyle: HeaderStyle(
                   formatButtonVisible: false,
                   titleCentered: true,
-                  titleTextStyle: TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
+                  titleTextStyle:
+                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 calendarStyle: CalendarStyle(
                   todayDecoration: BoxDecoration(
@@ -175,7 +174,7 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.chat), label: "Chat"),
           BottomNavigationBarItem(icon: Icon(Icons.pets), label: "Exercise"),
           BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart), label: "Shop"),
+              icon: Icon(Icons.family_restroom), label: "Yeojung"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
         currentIndex: _selectedIndex,
@@ -184,6 +183,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
 class ProgressIndicatorWidget extends StatelessWidget {
   final double progress;
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../model/Communities.dart';
+import '../model/communities.dart';
 import 'detailCommunity.dart';
 
 class CardView extends StatelessWidget {
@@ -42,10 +42,12 @@ class CardView extends StatelessWidget {
               // 메인 이미지 (탭 이벤트 추가)
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(
+                  Navigator.push(
                     context,
-                    '/community/detail',
-                    arguments: community, // `Communities` 객체 전달
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          DetailcommunityPage(community: community),
+                    ),
                   );
                 },
                 child: AspectRatio(

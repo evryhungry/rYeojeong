@@ -102,9 +102,17 @@ class _AddCommunityPageState extends State<AddCommunityPage> {
 
   Future<void> saveToCommunities(Map<String, dynamic> communityData) async {
     try {
+      // 데이터를 Firestore에 추가하고 DocumentReference 반환
       final docRef = await FirebaseFirestore.instance
           .collection('communities')
           .add(communityData);
+
+      // Firestore에 저장된 문서의 ID를 communityData에 추가
+      await FirebaseFirestore.instance
+          .collection('communities')
+          .doc(docRef.id)
+          .update({'documentId': docRef.id}); // 문서 ID 추가
+
       debugPrint('Document added with ID: ${docRef.id}');
     } catch (e) {
       debugPrint('Error saving community: $e');
@@ -182,7 +190,7 @@ class _AddCommunityPageState extends State<AddCommunityPage> {
 
                 final communityData = {
                   'description': _contentController.text,
-                  'photo': imageFileName, // 파일 이름 저장
+                  'photo': imageFileName,
                   'created_at': DateTime.now(),
                   'id': nextId,
                   'likes': 0,
@@ -190,6 +198,7 @@ class _AddCommunityPageState extends State<AddCommunityPage> {
                   'userId': user.uid,
                 };
 
+                // 데이터 저장
                 await saveToCommunities(communityData);
                 Navigator.pop(context);
               },

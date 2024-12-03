@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import '../model/Communities.dart';
+import '../model/communities.dart';
 import 'cardview.dart';
 import 'addCommunity.dart';
 
@@ -16,35 +16,50 @@ class _CommunityPageState extends State<CommunityPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
+  late Future<List<Communities>> _communitiesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCommunities(); // 초기 데이터 로드
+  }
+
+  // 커뮤니티 데이터를 로드하는 메서드
+  void _loadCommunities() {
+    setState(() {
+      _communitiesFuture = _fetchCommunities();
+    });
+  }
+
   // Firestore에서 커뮤니티 데이터 가져오기
   Future<List<Communities>> _fetchCommunities() async {
-    QuerySnapshot snapshot = await _firestore.collection('communities').get();
+    try {
+      QuerySnapshot snapshot = await _firestore.collection('communities').get();
 
-    List<Communities> communities = [];
+      List<Communities> communities = [];
 
-    for (var doc in snapshot.docs) {
-      final data = doc.data() as Map<String, dynamic>;
-      print('Document ID: ${doc.id}');
-      print('Data: $data');
-      print('id: ${data['id']}, likes: ${data['likes']}');
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
 
-      // Firebase Storage에서 URL 가져오기
-      String photoUrl = await _storage
-          .ref(data['photo']) // 예: 'pet1.png'
-          .getDownloadURL();
+        // Firebase Storage에서 URL 가져오기
+        String photoUrl = await _storage.ref(data['photo']).getDownloadURL();
 
-      communities.add(Communities(
-        id: data['id'],
-        name: data['name'],
-        photo: photoUrl, // URL 가져오기 완료
-        description: data['description'],
-        likes: data['likes'],
-        created_at: (data['created_at'] as Timestamp).toDate(),
-        userId: data['userId'],
-      ));
+        communities.add(Communities(
+            id: data['id'],
+            name: data['name'],
+            photo: photoUrl,
+            description: data['description'],
+            likes: data['likes'],
+            created_at: (data['created_at'] as Timestamp).toDate(),
+            userId: data['userId'],
+            documentId: doc.id));
+      }
+
+      return communities;
+    } catch (e) {
+      debugPrint('Error fetching communities: $e');
+      return [];
     }
-
-    return communities;
   }
 
   @override
@@ -68,24 +83,25 @@ class _CommunityPageState extends State<CommunityPage> {
               semanticLabel: 'add',
             ),
             onPressed: () {
+              // AddCommunityPage로 이동
               Navigator.pushNamed(context, '/community/add');
             },
           ),
         ],
       ),
       body: FutureBuilder<List<Communities>>(
-        future: _fetchCommunities(),
+        future: _communitiesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            print('Error: ${snapshot.error}');
+            debugPrint('Error: ${snapshot.error}');
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            print('No data found');
+            debugPrint('No data found');
             return const Center(child: Text('No communities found'));
           }
-          print('Data loaded: ${snapshot.data}');
+          debugPrint('Data loaded: ${snapshot.data}');
           return CardView(communityList: snapshot.data!);
         },
       ),
