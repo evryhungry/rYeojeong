@@ -23,15 +23,35 @@ class _ExercisePageState extends State<ExercisePage> {
   double totalDistance = 0.0;
   LatLng? previousPosition;
 
+  void _startLocationTracking() {
+    location.onLocationChanged.listen((LocationData currentLocation) {
+      setState(() {
+        // 실시간 카메라 업데이트
+        if (_controller.isCompleted) {
+          _controller.future.then((controller) {
+            controller.animateCamera(
+              CameraUpdate.newLatLng(
+                LatLng(currentLocation.latitude!, currentLocation.longitude!),
+              ),
+            );
+          });
+        }
+
+        // 거리 계산 업데이트
+        _updateDistance(currentLocation);
+      });
+    });
+  }
 
   @override
-  // ㅊ초기상태
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeLocation();
+      _startLocationTracking();
     });
   }
+
 
   //초기 로컬 우치정보 허가 미허가., 초기 위치 본인 위치 설정
   Future<void> _initializeLocation() async {
@@ -68,7 +88,7 @@ class _ExercisePageState extends State<ExercisePage> {
       print('Failed to get location: $e');
     }
   }
-
+  
 
   // 거리 정보 설정
   void _updateDistance(LocationData newLocation) {
@@ -99,7 +119,7 @@ class _ExercisePageState extends State<ExercisePage> {
         cos(_toRadians(lat1)) * cos(_toRadians(lat2)) * sin(dLon / 2) * sin(dLon / 2);
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
 
-    return earthRadius * c; // 거리 반환 (km)
+    return earthRadius * c;
   }
 
   double _toRadians(double degree) => degree * pi / 180;
@@ -157,7 +177,7 @@ class _ExercisePageState extends State<ExercisePage> {
                   mapType: MapType.normal,
                   initialCameraPosition: _initialCameraPosition ??
                       CameraPosition(
-                        target: LatLng(36.103839, 129.388732), // 기본값
+                        target: LatLng(36.1031, 129.3880), // 기본값
                         zoom: 16.0,
                       ),
                   onMapCreated: (GoogleMapController controller) {
