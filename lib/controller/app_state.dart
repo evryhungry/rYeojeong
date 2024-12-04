@@ -40,6 +40,8 @@ class ApplicationState extends ChangeNotifier {
   List<Communities> allCommunities = [];
   List<Communities> get allTheCommunities => allCommunities;
 
+  List<Exercises> exercises = [];
+
   // 초기화 메서드
   Future<void> init() async {
     await _auth.signOut();
@@ -47,6 +49,7 @@ class ApplicationState extends ChangeNotifier {
       if (user != null) {
         _loggedIn = true;
         _fetchUserDetails(user.uid);
+        fetchExerciseData();
         notifyListeners();
       } else {
         _loggedIn = false;
@@ -166,6 +169,7 @@ class ApplicationState extends ChangeNotifier {
     } catch (e) {
       print('Failed to fetch exercises: $e');
     }
+    notifyListeners();
   }
 
   int _calculateStreakDays() {
@@ -182,4 +186,63 @@ class ApplicationState extends ChangeNotifier {
 
     return streak + 1; // 오늘 포함
   }
+
+  Future<void> loadExercises() async {
+    try {
+      final snapshot = await _firestore.collection('exercises').get();
+
+      exercises = snapshot.docs.map((doc) {
+        final data = doc.data();
+        final createdAt = (data['created_at'] as Timestamp).toDate();
+
+        return Exercises(
+          id: data['id'],
+          userId: data['userId'],
+          distance: data['distance'].toDouble(),
+          stopWatch: data['stopWatch'],
+          created_at: createdAt,
+        );
+      }).toList();
+
+      print('Loaded Exercises: $exercises');
+      notifyListeners(); // 상태 변경 알림
+    } catch (e) {
+      print('Failed to load exercises: $e');
+    }
+  }
+
+
+  double calculateDailyCalories(DateTime date) {
+    // 날짜 정규화
+    final normalizedDate = DateTime(date.year, date.month, date.day);
+    print('All Exercises: $exercises');
+
+    final filteredExercises = exercises.where((exercise) {
+      final exerciseDate = DateTime(
+        exercise.created_at.year,
+        exercise.created_at.month,
+        exercise.created_at.day,
+      );
+      return exerciseDate == normalizedDate;
+    }).toList();
+
+    print('Date: $normalizedDate, Filtered Exercises: $filteredExercises');
+
+    return filteredExercises.fold(0.0, (total, exercise) => total + exercise.caloriesBurned);
+  }
+
+
+  Future<List<MapEntry<DateTime, double>>> getWeeklyCalories() async {
+    if (exercises.isEmpty) {
+      await loadExercises(); // 데이터가 없으면 로드
+    }
+
+    DateTime today = DateTime.now();
+    return List.generate(7, (index) {
+      DateTime date = DateTime(today.year, today.month, today.day).subtract(Duration(days: index));
+      double calories = calculateDailyCalories(date);
+      return MapEntry(date, calories);
+    }).reversed.toList();
+  }
+
 }

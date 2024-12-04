@@ -12,6 +12,7 @@ import 'package:re/pages/signup.dart';
 import 'pages/loading.dart'; // LoginPage가 정의된 파일을 import
 import 'controller/app_state.dart';
 import 'pages/animal.dart';
+import 'package:re/pages/profile.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,6 +55,7 @@ class MyApp extends StatelessWidget {
         '/exercise': (context) => ExercisePage(),
         '/community/add': (context) => AddCommunityPage(),
         '/animal': (context) => AnimalListScreen(),
+        '/profile': (context) => ProfileScreen(),
       },
     );
   }

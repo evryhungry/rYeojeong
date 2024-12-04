@@ -171,7 +171,7 @@ class _HomePageState extends State<HomePage> {
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: "Chat"),
+          BottomNavigationBarItem(icon: Icon(Icons.forum), label: "Community"),
           BottomNavigationBarItem(icon: Icon(Icons.pets), label: "Exercise"),
           BottomNavigationBarItem(
               icon: Icon(Icons.family_restroom), label: "Yeojung"),
