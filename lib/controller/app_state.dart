@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:flutter/material.dart';
 import '../model/communities.dart';
 import '../model/exercises.dart';
 import '../model/users.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+
 
 class ApplicationState extends ChangeNotifier {
   ApplicationState() {
@@ -50,6 +50,7 @@ class ApplicationState extends ChangeNotifier {
         _loggedIn = true;
         _fetchUserDetails(user.uid);
         fetchExerciseData();
+        loadMyCommunities();
         notifyListeners();
       } else {
         _loggedIn = false;
@@ -96,7 +97,47 @@ class ApplicationState extends ChangeNotifier {
     }
   }
 
-  // Post Exercise 
+  String? getCurrentUserId() {
+  try {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      return user.uid; // 현재 유저의 uid 반환
+    }
+    return null; // 유저가 로그인하지 않은 경우
+  } catch (e) {
+    debugPrint('Error fetching current user ID: $e');
+    return null; // 오류가 발생한 경우
+  }
+}
+
+  Future<void> updateDescriptionById(int id, String newDescription) async {
+    try {
+      // Firestore에서 `id`로 문서 검색
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('communities')
+          .where('id', isEqualTo: id)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // 문서 ID 가져오기
+        final docId = querySnapshot.docs.first.id;
+
+        // Firestore 문서 업데이트
+        await FirebaseFirestore.instance
+            .collection('communities')
+            .doc(docId)
+            .update({'description': newDescription});
+
+        debugPrint("Document with id: $id updated successfully!");
+      } else {
+        debugPrint("No document found with id: $id");
+      }
+    } catch (e) {
+      debugPrint("Error updating document: $e");
+    }
+  }
+
+ 
   Future<void> saveExerciseData(double distance, int elapsedSeconds) async {
     if (_currentUser == null) {
       print('No user is logged in');
@@ -120,24 +161,38 @@ class ApplicationState extends ChangeNotifier {
         'created_at': Timestamp.fromDate(exercise.created_at),
       });
       print('Exercise data saved successfully');
+      await fetchExerciseData();
       notifyListeners();
     } catch (e) {
       print('Failed to save exercise data: $e');
     }
+    notifyListeners();
   }
 
   // Get List Exercise
   Future<void> fetchExerciseData() async {
     try {
-      final snapshot = await _firestore.collection('exercises').get();
+      // 현재 로그인된 사용자 확인
+      if (_currentUser == null) {
+        print('No user is logged in');
+        return;
+      }
+
+      // 현재 사용자에 해당하는 운동 데이터만 가져오기
+      final snapshot = await _firestore
+          .collection('exercises')
+          .where('userId', isEqualTo: _currentUser!.uid) // 현재 사용자의 userId로 필터링
+          .get();
 
       DateTime now = DateTime.now();
       Map<DateTime, List<Exercises>> tempEvents = {};
 
       for (var doc in snapshot.docs) {
         final data = doc.data();
+
         // created_at 필드 확인
         final createdAt = (data['created_at'] as Timestamp).toDate();
+
         // Exercises 모델 생성
         final exercise = Exercises(
           id: data['id'],
@@ -155,6 +210,7 @@ class ApplicationState extends ChangeNotifier {
         tempEvents[eventDate]!.add(exercise);
       }
 
+      // 상태 업데이트
       _events = tempEvents;
       print("새로운 날짜 추가: $_events");
       _totalExerciseCount = snapshot.docs.length;
@@ -169,8 +225,8 @@ class ApplicationState extends ChangeNotifier {
     } catch (e) {
       print('Failed to fetch exercises: $e');
     }
-    notifyListeners();
   }
+
 
   int _calculateStreakDays() {
     List<DateTime> dates = _events.keys.toList()..sort();
@@ -231,18 +287,121 @@ class ApplicationState extends ChangeNotifier {
     return filteredExercises.fold(0.0, (total, exercise) => total + exercise.caloriesBurned);
   }
 
+  Future<void> saveToCommunities(Map<String, dynamic> communityData) async {
+    try {
+      // 데이터를 Firestore에 추가하고 DocumentReference 반환
+      final docRef = await FirebaseFirestore.instance
+          .collection('communities')
+          .add(communityData);
 
-  Future<List<MapEntry<DateTime, double>>> getWeeklyCalories() async {
+      // Firestore에 저장된 문서의 ID를 communityData에 추가
+      await FirebaseFirestore.instance
+          .collection('communities')
+          .doc(docRef.id)
+          .update({'documentId': docRef.id}); // 문서 ID 추가
+
+      debugPrint('Document added with ID: ${docRef.id}');
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error saving community: $e');
+    }
+  }
+
+    Future<List<MapEntry<DateTime, double>>> getWeeklyCalories() async {
+    if (_currentUser == null) {
+      print('No user is logged in');
+      return [];
+    }
+
     if (exercises.isEmpty) {
       await loadExercises(); // 데이터가 없으면 로드
     }
 
     DateTime today = DateTime.now();
+
+    // 로그인된 사용자의 운동 데이터만 필터링
+    final userExercises = exercises.where((exercise) => exercise.userId == _currentUser!.uid).toList();
+
     return List.generate(7, (index) {
       DateTime date = DateTime(today.year, today.month, today.day).subtract(Duration(days: index));
-      double calories = calculateDailyCalories(date);
+      double calories = _calculateDailyCaloriesForUser(userExercises, date);
       return MapEntry(date, calories);
     }).reversed.toList();
   }
+
+  // 특정 날짜의 칼로리 계산 (로그인된 사용자 데이터만)
+  double _calculateDailyCaloriesForUser(List<Exercises> userExercises, DateTime date) {
+    // 날짜 정규화
+    final normalizedDate = DateTime(date.year, date.month, date.day);
+
+    final filteredExercises = userExercises.where((exercise) {
+      final exerciseDate = DateTime(
+        exercise.created_at.year,
+        exercise.created_at.month,
+        exercise.created_at.day,
+      );
+      return exerciseDate == normalizedDate;
+    }).toList();
+
+    // 특정 날짜의 칼로리를 합산
+    return filteredExercises.fold(0.0, (total, exercise) => total + exercise.caloriesBurned);
+  }
+
+  Future<void> loadMyCommunities() async {
+    try {
+      allCommunities = await fetchMyCommunities();
+      notifyListeners(); // 상태 변경 알림
+    } catch (e) {
+      debugPrint('Error loading communities: $e');
+    }
+  }
+
+  Future<List<Communities>> fetchMyCommunities() async {
+    if (_currentUser == null) {
+      print('No user is logged in');
+      return [];
+    }
+
+    try {
+      // 현재 유저의 커뮤니티만 가져오기
+      QuerySnapshot snapshot = await _firestore
+          .collection('communities')
+          .where('userId', isEqualTo: _currentUser!.uid) // 현재 유저의 userId로 필터링
+          .get();
+
+      // 결과 처리
+      List<Communities> communities = [];
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+
+        // Firebase Storage에서 이미지 URL 가져오기
+        String photoUrl = '';
+        try {
+          photoUrl = await FirebaseStorage.instance.ref(data['photo']).getDownloadURL();
+        } catch (e) {
+          photoUrl = 'assets/images/default_community.png'; // 기본 이미지
+          debugPrint('Failed to fetch photo URL: $e');
+        }
+
+        // 커뮤니티 객체 생성
+        communities.add(Communities(
+          id: data['id'],
+          name: data['name'],
+          photo: photoUrl,
+          description: data['description'],
+          likes: data['likes'],
+          created_at: (data['created_at'] as Timestamp).toDate(),
+          userId: data['userId'],
+          documentId: doc.id,
+        ));
+      }
+
+      return communities;
+    } catch (e) {
+      debugPrint('Error fetching communities: $e');
+      return [];
+    }
+  }
+
 
 }

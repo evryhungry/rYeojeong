@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
-import 'package:html/parser.dart'; // HTML 파싱 패키지
+import 'package:html/parser.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AnimalListScreen extends StatefulWidget {
   @override
@@ -111,8 +112,11 @@ class _AnimalListScreenState extends State<AnimalListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '여정을 함께하세요',
-          style: TextStyle(fontSize: 18),
+          '당신의 여정과 함께하세요',
+          style: GoogleFonts.baloo2(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true, // 제목을 중앙에 정렬
         leading: IconButton(

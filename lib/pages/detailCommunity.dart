@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../model/communities.dart';
 import 'editCommunity.dart';
-import '../model/communities.dart';
+import '../controller/app_state.dart'; // ApplicationState import
 
 class DetailcommunityPage extends StatefulWidget {
   final Communities community;
@@ -15,22 +16,32 @@ class DetailcommunityPage extends StatefulWidget {
 
 class _DetailcommunityPageState extends State<DetailcommunityPage> {
   late Communities community;
+  String? currentUserId; // 현재 로그인된 사용자 ID
 
   @override
   void initState() {
     super.initState();
-    community = widget.community; // 초기 데이터 설정
+    community = widget.community;
   }
 
   Future<void> deleteCommunity(String communityId) async {
-    // 데이터베이스에서 데이터 삭제 로직 구현
-    // 예: await DatabaseService.deleteCommunity(communityId);
-    // 실제 구현은 프로젝트의 데이터베이스 설정에 따라 변경
-    print('Community with ID $communityId deleted.');
+    try {
+      await FirebaseFirestore.instance
+          .collection('communities')
+          .doc(communityId)
+          .delete();
+      print('Community with ID $communityId deleted.');
+    } catch (e) {
+      print('Error deleting community: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final appstate = Provider.of<ApplicationState>(context, listen: false);
+    final userId = appstate.getCurrentUserId();
+    final isOwner = userId == community.userId;
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -40,72 +51,64 @@ class _DetailcommunityPageState extends State<DetailcommunityPage> {
           },
         ),
         title: Text("${community.name}님의 여정"),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(
-              Icons.edit,
-              semanticLabel: 'edit',
-            ),
-            onPressed: () async {
-              // EditCommunityPage로 이동하여 수정된 데이터 받기
-              final updatedCommunity = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditCommunityPage(community: community),
+        actions: isOwner
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () async {
+                    final updatedCommunity = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            EditCommunityPage(community: community),
+                      ),
+                    );
+
+                    if (updatedCommunity != null) {
+                      setState(() {
+                        community = updatedCommunity;
+                      });
+                    }
+                  },
                 ),
-              );
-
-              // 수정된 데이터가 null이 아닐 경우 UI 업데이트
-              if (updatedCommunity != null) {
-                setState(() {
-                  community = updatedCommunity;
-                });
-              }
-            },
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.delete,
-              semanticLabel: 'delete',
-            ),
-            onPressed: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: const Text('삭제 확인'),
-                    content: const Text('이 커뮤니티를 삭제하시겠습니까?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('취소'),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('삭제 확인'),
+                        content: const Text('당신의 여정에서 삭제하시겠습니까?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('취소'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('삭제'),
+                          ),
+                        ],
                       ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text('삭제'),
-                      ),
-                    ],
-                  );
-                },
-              );
+                    );
 
-              if (confirm == true) {
-                try {
-                  await FirebaseFirestore.instance
-                      .collection('communities')
-                      .doc(community.documentId) // 문서 ID 사용
-                      .delete();
-                  Navigator.pop(context); // 삭제 후 이전 화면으로 이동
-                } catch (e) {
-                  print('삭제 중 오류 발생: $e');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('삭제 중 오류가 발생했습니다. 다시 시도해주세요.')),
-                  );
-                }
-              }
-            },
-          ),
-        ],
+                    if (confirm == true) {
+                      try {
+                        await deleteCommunity(community.documentId);
+                        Navigator.pop(context);
+                      } catch (e) {
+                        print('삭제 중 오류 발생: $e');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('삭제 중 오류가 발생했습니다. 다시 시도해주세요.')),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ]
+            : null, // 소유자가 아닐 경우 액션 버튼 숨기기
       ),
       body: SingleChildScrollView(
         child: Padding(

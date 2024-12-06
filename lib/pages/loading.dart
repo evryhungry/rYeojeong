@@ -8,11 +8,11 @@ class ImageSlider extends StatefulWidget {
 }
 
 class _ImageSliderState extends State<ImageSlider> {
-  final PageController _pageController = PageController(); // PageController 생성
+  final PageController _pageController = PageController(); 
 
   @override
   void dispose() {
-    _pageController.dispose(); // 메모리 누수를 방지하기 위해 dispose
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -21,7 +21,7 @@ class _ImageSliderState extends State<ImageSlider> {
     final theme = Theme.of(context);
     
     return Scaffold(
-      backgroundColor: Colors.white, // 배경색 설정
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           Column(
@@ -33,19 +33,19 @@ class _ImageSliderState extends State<ImageSlider> {
                     Center(
                       child: Image.asset(
                         'assets/first.png',
-                        fit: BoxFit.contain, // 원본 비율로 표시
+                        fit: BoxFit.contain, 
                       ),
                     ),
                     Center(
                       child: Image.asset(
                         'assets/second.png',
-                        fit: BoxFit.contain, // 원본 비율로 표시
+                        fit: BoxFit.contain,
                       ),
                     ),
                     Center(
                       child: Image.asset(
                         'assets/third.png',
-                        fit: BoxFit.contain, // 원본 비율로 표시
+                        fit: BoxFit.contain,
                       ),
                     ),
                   ],
@@ -55,19 +55,19 @@ class _ImageSliderState extends State<ImageSlider> {
           ),
           // SmoothPageIndicator
           Positioned(
-            bottom: 250, // 화면 아래로부터 100px 위
+            bottom: 250, 
             left: 0,
             right: 0,
             child: Center(
               child: SmoothPageIndicator(
-                controller: _pageController, // 동일한 PageController 사용
-                count: 3, // 슬라이드 개수
+                controller: _pageController, 
+                count: 3, 
                 effect: ExpandingDotsEffect(
                   dotWidth: 8.0,
                   dotHeight: 8.0,
                   activeDotColor: theme.primaryColorLight,
                   dotColor: Colors.grey.shade300,
-                ), // 애니메이션 효과 설정
+                ), 
               ),
             ),
           ),

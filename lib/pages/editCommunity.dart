@@ -86,38 +86,35 @@ class _EditCommunityPageState extends State<EditCommunityPage> {
           ),
         ],
       ),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: double.infinity,
-              height: 250.0,
-              child: Image.network(
-                widget.community.photo,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(Icons.image_not_supported);
-                },
-              ),
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 250.0,
+            child: Image.network(
+              widget.community.photo,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(Icons.image_not_supported);
+              },
             ),
-            const SizedBox(height: 16),
-            const Text(
-              "게시글 수정",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            "게시글 수정",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _descriptionController,
+            maxLines: 5,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: "내용을 입력하세요",
             ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _descriptionController,
-              maxLines: 5,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: "내용을 입력하세요",
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

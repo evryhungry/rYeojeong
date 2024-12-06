@@ -35,7 +35,9 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     final appState = Provider.of<ApplicationState>(context, listen: false);
-    appState.fetchExerciseData();
+    appState.fetchExerciseData().then((_) {
+      setState(() {}); // UI 강제 갱신
+    });
   }
 
   List<Exercises> _getEventsForDay(DateTime day) {
@@ -63,7 +65,7 @@ class _HomePageState extends State<HomePage> {
       ),
       builder: (BuildContext context) {
         return Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 10, 16, 10),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +106,7 @@ class _HomePageState extends State<HomePage> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 4, 16, 8),
           child: Column(
             children: [
               // 1. TableCalendar
@@ -192,7 +194,7 @@ class ProgressIndicatorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.fromLTRB(16.0, 10, 16, 10),
       margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
       decoration: BoxDecoration(
         color: Colors.white,

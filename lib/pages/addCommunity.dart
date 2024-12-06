@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:re/controller/app_state.dart';
 
 class AddCommunityPage extends StatefulWidget {
   const AddCommunityPage({super.key});
@@ -100,27 +102,30 @@ class _AddCommunityPageState extends State<AddCommunityPage> {
     }
   }
 
-  Future<void> saveToCommunities(Map<String, dynamic> communityData) async {
-    try {
-      // 데이터를 Firestore에 추가하고 DocumentReference 반환
-      final docRef = await FirebaseFirestore.instance
-          .collection('communities')
-          .add(communityData);
+  // Future<void> saveToCommunities(Map<String, dynamic> communityData, BuildContext context) async {
+  //   try {
+  //     // 데이터를 Firestore에 추가하고 DocumentReference 반환
+  //     final docRef = await FirebaseFirestore.instance
+  //         .collection('communities')
+  //         .add(communityData);
 
-      // Firestore에 저장된 문서의 ID를 communityData에 추가
-      await FirebaseFirestore.instance
-          .collection('communities')
-          .doc(docRef.id)
-          .update({'documentId': docRef.id}); // 문서 ID 추가
+  //     // Firestore에 저장된 문서의 ID를 communityData에 추가
+  //     await FirebaseFirestore.instance
+  //         .collection('communities')
+  //         .doc(docRef.id)
+  //         .update({'documentId': docRef.id}); // 문서 ID 추가
 
-      debugPrint('Document added with ID: ${docRef.id}');
-    } catch (e) {
-      debugPrint('Error saving community: $e');
-    }
-  }
+  //     debugPrint('Document added with ID: ${docRef.id}');
+  //     notifyListeners();
+  //   } catch (e) {
+  //     debugPrint('Error saving community: $e');
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<ApplicationState>(context ,listen: false);
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -133,8 +138,7 @@ class _AddCommunityPageState extends State<AddCommunityPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: ListView(
           children: [
             image != null
                 ? Image.file(
@@ -144,7 +148,7 @@ class _AddCommunityPageState extends State<AddCommunityPage> {
                     fit: BoxFit.cover,
                   )
                 : Image.network(
-                    // 기본 이미지 URL 생성
+                    // 기본 이미지 URL
                     'https://firebasestorage.googleapis.com/v0/b/ryeojeong-5a430.firebasestorage.app/o/default.png?alt=media&token=a7e84f8e-3d6f-40a0-a927-90b66c68a397',
                     width: MediaQuery.of(context).size.width,
                     height: MediaQuery.of(context).size.height / 3,
@@ -199,14 +203,14 @@ class _AddCommunityPageState extends State<AddCommunityPage> {
                 };
 
                 // 데이터 저장
-                await saveToCommunities(communityData);
+                await appState.saveToCommunities(communityData);
                 Navigator.pop(context);
               },
-              child: const Text(
+              child: Text(
                 '여정 공유',
                 style: TextStyle(
                   fontSize: 18,
-                  color: Colors.orange,
+                  color: theme.primaryColor,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -216,4 +220,5 @@ class _AddCommunityPageState extends State<AddCommunityPage> {
       ),
     );
   }
+
 }
