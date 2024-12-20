@@ -16,6 +16,7 @@ class ApplicationState extends ChangeNotifier {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
@@ -39,6 +40,7 @@ class ApplicationState extends ChangeNotifier {
 
   List<Communities> allCommunities = [];
   List<Communities> get allTheCommunities => allCommunities;
+
 
   List<Exercises> exercises = [];
 
@@ -369,7 +371,6 @@ class ApplicationState extends ChangeNotifier {
           .where('userId', isEqualTo: _currentUser!.uid) // 현재 유저의 userId로 필터링
           .get();
 
-      // 결과 처리
       List<Communities> communities = [];
       for (var doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
@@ -403,5 +404,55 @@ class ApplicationState extends ChangeNotifier {
     }
   }
 
+
+  Stream<List<Communities>> fetchCommunities() {
+    // Firestore 컬렉션의 실시간 스트림 + id 필드를 기준으로 내림차순 정렬
+    final communityStream = _firestore
+        .collection('communities')
+        .orderBy('id', descending: true) // id를 기준으로 내림차순 정렬
+        .snapshots();
+
+    // Firestore 데이터를 `Communities` 리스트로 변환
+    return communityStream.asyncMap((QuerySnapshot snapshot) async {
+      List<Communities> communities = [];
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+
+        try {
+          // Firebase Storage에서 이미지 URL 가져오기
+          String photoUrl = await _storage.ref(data['photo']).getDownloadURL();
+
+          communities.add(Communities(
+            id: data['id'],
+            name: data['name'],
+            photo: photoUrl,
+            description: data['description'],
+            likes: data['likes'],
+            created_at: (data['created_at'] as Timestamp).toDate(),
+            userId: data['userId'],
+            documentId: doc.id,
+          ));
+        } catch (e) {
+          debugPrint('Error fetching photo URL: $e');
+        }
+      }
+      return communities; // 최종적으로 변환된 리스트 반환
+    });
+  }
+
+
+
+   Future<void> deleteCommunity(String communityId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('communities')
+          .doc(communityId)
+          .delete();
+      print('Community with ID $communityId deleted.');
+      notifyListeners();
+    } catch (e) {
+      print('Error deleting community: $e');
+    }
+  }
 
 }

@@ -24,18 +24,6 @@ class _DetailcommunityPageState extends State<DetailcommunityPage> {
     community = widget.community;
   }
 
-  Future<void> deleteCommunity(String communityId) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('communities')
-          .doc(communityId)
-          .delete();
-      print('Community with ID $communityId deleted.');
-    } catch (e) {
-      print('Error deleting community: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final appstate = Provider.of<ApplicationState>(context, listen: false);
@@ -94,7 +82,7 @@ class _DetailcommunityPageState extends State<DetailcommunityPage> {
 
                     if (confirm == true) {
                       try {
-                        await deleteCommunity(community.documentId);
+                        await appstate.deleteCommunity(community.documentId);
                         Navigator.pop(context);
                       } catch (e) {
                         print('삭제 중 오류 발생: $e');

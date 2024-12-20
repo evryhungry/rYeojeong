@@ -101,27 +101,7 @@ class _AddCommunityPageState extends State<AddCommunityPage> {
       return 1;
     }
   }
-
-  // Future<void> saveToCommunities(Map<String, dynamic> communityData, BuildContext context) async {
-  //   try {
-  //     // 데이터를 Firestore에 추가하고 DocumentReference 반환
-  //     final docRef = await FirebaseFirestore.instance
-  //         .collection('communities')
-  //         .add(communityData);
-
-  //     // Firestore에 저장된 문서의 ID를 communityData에 추가
-  //     await FirebaseFirestore.instance
-  //         .collection('communities')
-  //         .doc(docRef.id)
-  //         .update({'documentId': docRef.id}); // 문서 ID 추가
-
-  //     debugPrint('Document added with ID: ${docRef.id}');
-  //     notifyListeners();
-  //   } catch (e) {
-  //     debugPrint('Error saving community: $e');
-  //   }
-  // }
-
+  
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<ApplicationState>(context ,listen: false);

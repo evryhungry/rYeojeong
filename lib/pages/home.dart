@@ -76,7 +76,7 @@ class _HomePageState extends State<HomePage> {
               ),
               SizedBox(height: 10),
               if (exercises.isEmpty)
-                Center(child: Text("운동 기록이 없습니다."))
+                Center(child: Text("산책 기록이 없습니다."))
               else
                 ...exercises.map((exercise) => ListTile(
                       title: Text(
@@ -122,7 +122,6 @@ class _HomePageState extends State<HomePage> {
                     _selectedDay = selectedDay;
                     _focusedDay = focusedDay;
                   });
-                  // 운동 기록 상세 창 표시
                   _showExerciseDetails(context, selectedDay);
                 },
                 calendarFormat: CalendarFormat.month,
@@ -154,12 +153,9 @@ class _HomePageState extends State<HomePage> {
 
               SizedBox(height: 20),
 
-              // 2. Progress Indicator (운동 진행률)
               ProgressIndicatorWidget(progress: appState.progress),
 
               SizedBox(height: 20),
-
-              // 3. 통계 위젯 (걸음수, 운동 시간)
               StatisticsWidget(
                 streakDays: appState.streakDays,
                 totalExerciseCount: appState.totalExerciseCount,
@@ -212,7 +208,7 @@ class ProgressIndicatorWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "운동 진행률",
+            "산책 진행률",
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 10),
@@ -260,8 +256,8 @@ class StatisticsWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           StatisticColumn(label: "연속 출석일", value: "$streakDays 일"),
-          StatisticColumn(label: "총 운동 횟수", value: "$totalExerciseCount 회"),
-          StatisticColumn(label: "이번 달 운동", value: "$thisMonthExerciseCount 회"),
+          StatisticColumn(label: "총 산책 횟수", value: "$totalExerciseCount 회"),
+          StatisticColumn(label: "이번 달 산책", value: "$thisMonthExerciseCount 회"),
         ],
       ),
     );

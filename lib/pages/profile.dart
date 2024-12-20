@@ -210,44 +210,4 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-
-  // Firestore에서 칼로리 데이터 가져오기
-
-  // Firestore에서 커뮤니티 데이터 가져오기
-  Future<List<Communities>> _fetchCommunities() async {
-    final firestore = FirebaseFirestore.instance;
-    final storage = FirebaseStorage.instance;
-
-    try {
-      final querySnapshot = await firestore.collection('communities').get();
-
-      List<Communities> communities = [];
-      for (var doc in querySnapshot.docs) {
-        final data = doc.data();
-        String photoUrl = '';
-
-        try {
-          photoUrl = await storage.ref(data['photo']).getDownloadURL();
-        } catch (e) {
-          photoUrl = 'assets/logo.png'; // 기본 이미지 경로
-        }
-
-        communities.add(Communities(
-          id: data['id'],
-          name: data['name'],
-          photo: photoUrl,
-          description: data['description'],
-          likes: data['likes'],
-          created_at: (data['created_at'] as Timestamp).toDate(),
-          userId: data['userId'],
-          documentId: doc.id,
-        ));
-      }
-
-      return communities;
-    } catch (e) {
-      debugPrint('Error fetching communities: $e');
-      return [];
-    }
-  }
 }
